@@ -100,6 +100,50 @@ public class TestSparkTruncateFunction extends SparkTestBaseWithCatalog {
   }
 
   @Test
+  public void testTruncateFloat() {
+    // FIXME(joey): Test cases.
+    Assert.assertEquals(0, scalarSql("SELECT system.truncate(10, 0F)"));
+    Assert.assertEquals(0, scalarSql("SELECT system.truncate(10, 1F)"));
+    Assert.assertEquals(0, scalarSql("SELECT system.truncate(10, 5F)"));
+    Assert.assertEquals(0, scalarSql("SELECT system.truncate(10, 9F)"));
+    Assert.assertEquals(10, scalarSql("SELECT system.truncate(10, 10F)"));
+    Assert.assertEquals(10, scalarSql("SELECT system.truncate(10, 11F)"));
+    Assert.assertEquals(-10, scalarSql("SELECT system.truncate(10, -1F)"));
+    Assert.assertEquals(-10, scalarSql("SELECT system.truncate(10, -5F)"));
+    Assert.assertEquals(-10, scalarSql("SELECT system.truncate(10, -10F)"));
+    Assert.assertEquals(-20, scalarSql("SELECT system.truncate(10, -11F)"));
+
+    // Check that different widths can be used
+    Assert.assertEquals(-2, scalarSql("SELECT system.truncate(2, -1F)"));
+    Assert.assertEquals(0, scalarSql("SELECT system.truncate(300, 1F)"));
+
+    Assert.assertNull(
+        "Null input should return null", scalarSql("SELECT system.truncate(2, CAST(null AS float))"));
+  }
+
+  @Test
+  public void testTruncateDouble() {
+    // FIXME(joey): Test cases.
+    Assert.assertEquals(0, scalarSql("SELECT system.truncate(10, 0D)"));
+    Assert.assertEquals(0, scalarSql("SELECT system.truncate(10, 1D)"));
+    Assert.assertEquals(0, scalarSql("SELECT system.truncate(10, 5D)"));
+    Assert.assertEquals(0, scalarSql("SELECT system.truncate(10, 9D)"));
+    Assert.assertEquals(10, scalarSql("SELECT system.truncate(10, 10D)"));
+    Assert.assertEquals(10, scalarSql("SELECT system.truncate(10, 11D)"));
+    Assert.assertEquals(-10, scalarSql("SELECT system.truncate(10, -1D)"));
+    Assert.assertEquals(-10, scalarSql("SELECT system.truncate(10, -5D)"));
+    Assert.assertEquals(-10, scalarSql("SELECT system.truncate(10, -10D)"));
+    Assert.assertEquals(-20, scalarSql("SELECT system.truncate(10, -11D)"));
+
+    // Check that different widths can be used
+    Assert.assertEquals(-2, scalarSql("SELECT system.truncate(2, -1D)"));
+    Assert.assertEquals(0, scalarSql("SELECT system.truncate(300, 1D)"));
+
+    Assert.assertNull(
+        "Null input should return null", scalarSql("SELECT system.truncate(2, CAST(null AS double))"));
+  }
+
+  @Test
   public void testTruncateBigInt() {
     Assert.assertEquals(0L, scalarSql("SELECT system.truncate(10, 0L)"));
     Assert.assertEquals(0L, scalarSql("SELECT system.truncate(10, 1L)"));
@@ -343,18 +387,6 @@ public class TestSparkTruncateFunction extends SparkTestBaseWithCatalog {
 
   @Test
   public void testInvalidTypesForTruncationColumn() {
-    Assertions.assertThatThrownBy(
-            () -> scalarSql("SELECT system.truncate(10, cast(12.3456 as float))"))
-        .isInstanceOf(AnalysisException.class)
-        .hasMessageStartingWith(
-            "Function 'truncate' cannot process input: (int, float): Expected truncation col to be tinyint, shortint, int, bigint, decimal, string, or binary");
-
-    Assertions.assertThatThrownBy(
-            () -> scalarSql("SELECT system.truncate(10, cast(12.3456 as double))"))
-        .isInstanceOf(AnalysisException.class)
-        .hasMessageStartingWith(
-            "Function 'truncate' cannot process input: (int, double): Expected truncation col to be tinyint, shortint, int, bigint, decimal, string, or binary");
-
     Assertions.assertThatThrownBy(() -> scalarSql("SELECT system.truncate(10, true)"))
         .isInstanceOf(AnalysisException.class)
         .hasMessageStartingWith(
@@ -428,6 +460,13 @@ public class TestSparkTruncateFunction extends SparkTestBaseWithCatalog {
         .isNotNull()
         .contains(
             "staticinvoke(class org.apache.iceberg.spark.functions.TruncateFunction$TruncateInt");
+
+    // Double
+    Assertions.assertThat(scalarSql("EXPLAIN EXTENDED select system.truncate(5, 6D)"))
+        .asString()
+        .isNotNull()
+        .contains(
+            "staticinvoke(class org.apache.iceberg.spark.functions.TruncateFunction$TruncateDouble");
 
     // Long
     Assertions.assertThat(scalarSql("EXPLAIN EXTENDED SELECT system.truncate(5, 6L)"))
