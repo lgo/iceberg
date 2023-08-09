@@ -60,6 +60,16 @@ public class TruncateUtil {
     return value - (((value % width) + width) % width);
   }
 
+  public static double truncateDouble(int width, double value) {
+    return truncateDecimal(BigInteger.valueOf(width), BigDecimal.valueOf(value)).doubleValue();
+    // FIXME(joey): Test thi.
+    //
+    // FIXME(joey): Document the behaviour approach.
+    // int intValue = Math.floor(value);
+    // int intTruncated = intValue - (((intValue % width) + width) % width);
+    // return (double) intTruncated;
+  }
+
   public static BigDecimal truncateDecimal(BigInteger unscaledWidth, BigDecimal value) {
     BigDecimal remainder =
         new BigDecimal(

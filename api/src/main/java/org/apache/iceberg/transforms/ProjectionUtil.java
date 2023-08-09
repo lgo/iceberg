@@ -83,53 +83,8 @@ class ProjectionUtil {
     }
   }
 
-  static <T> UnboundPredicate<T> truncateDoubleStrict(
-      String name, BoundLiteralPredicate<Double> pred, Function<Double, T> transform) {
-    long boundary = pred.literal().value();
-    switch (pred.op()) {
-      case LT:
-        return predicate(Expression.Operation.LT, name, transform.apply(boundary));
-      case LT_EQ:
-        return predicate(Expression.Operation.LT, name, transform.apply(boundary + 1L));
-      case GT:
-        return predicate(Expression.Operation.GT, name, transform.apply(boundary));
-      case GT_EQ:
-        return predicate(Expression.Operation.GT, name, transform.apply(boundary - 1L));
-      case NOT_EQ:
-        return predicate(Expression.Operation.NOT_EQ, name, transform.apply(boundary));
-      case EQ:
-        // there is no predicate that guarantees equality because adjacent longs transform to the
-        // same value
-        return null;
-      default:
-        return null;
-    }
-  }
-
-  static <T> UnboundPredicate<T> truncateDouble(
-      String name, BoundLiteralPredicate<Double> pred, Function<Double, T> transform) {
-    long boundary = pred.literal().value();
-    switch (pred.op()) {
-      case LT:
-        // adjust closed and then transform ltEq
-        return predicate(Expression.Operation.LT_EQ, name, transform.apply(boundary - 1L));
-      case LT_EQ:
-        return predicate(Expression.Operation.LT_EQ, name, transform.apply(boundary));
-      case GT:
-        // adjust closed and then transform gtEq
-        return predicate(Expression.Operation.GT_EQ, name, transform.apply(boundary + 1L));
-      case GT_EQ:
-        return predicate(Expression.Operation.GT_EQ, name, transform.apply(boundary));
-      case EQ:
-        return predicate(pred.op(), name, transform.apply(boundary));
-      default:
-        return null;
-    }
-  }
-
-
-  static <T> UnboundPredicate<T> truncateDoubleStrict(
-      String name, BoundLiteralPredicate<Double> pred, Function<Double, T> transform) {
+  static <T> UnboundPredicate<T> truncateLongStrict(
+      String name, BoundLiteralPredicate<Long> pred, Function<Long, T> transform) {
     long boundary = pred.literal().value();
     switch (pred.op()) {
       case LT:
@@ -163,6 +118,54 @@ class ProjectionUtil {
       case GT:
         // adjust closed and then transform gtEq
         return predicate(Expression.Operation.GT_EQ, name, transform.apply(boundary + 1L));
+      case GT_EQ:
+        return predicate(Expression.Operation.GT_EQ, name, transform.apply(boundary));
+      case EQ:
+        return predicate(pred.op(), name, transform.apply(boundary));
+      default:
+        return null;
+    }
+  }
+
+  static <T> UnboundPredicate<T> truncateDoubleStrict(
+      String name, BoundLiteralPredicate<Double> pred, Function<Double, T> transform) {
+    double boundary = pred.literal().value();
+    switch (pred.op()) {
+      case LT:
+        return predicate(Expression.Operation.LT, name, transform.apply(boundary));
+      case LT_EQ:
+        // FIXME(joey): Boundaries are incorrect?
+        return predicate(Expression.Operation.LT, name, transform.apply(boundary + 1.0d));
+      case GT:
+        return predicate(Expression.Operation.GT, name, transform.apply(boundary));
+      case GT_EQ:
+        // FIXME(joey): Boundaries are incorrect?
+        return predicate(Expression.Operation.GT, name, transform.apply(boundary - 1.0d));
+      case NOT_EQ:
+        return predicate(Expression.Operation.NOT_EQ, name, transform.apply(boundary));
+      case EQ:
+        // there is no predicate that guarantees equality because adjacent longs transform to the
+        // same value
+        return null;
+      default:
+        return null;
+    }
+  }
+
+  static <T> UnboundPredicate<T> truncateDouble(
+      String name, BoundLiteralPredicate<Double> pred, Function<Double, T> transform) {
+    double boundary = pred.literal().value();
+    switch (pred.op()) {
+      case LT:
+        // adjust closed and then transform ltEq
+        // FIXME(joey): Boundaries are incorrect?
+        return predicate(Expression.Operation.LT_EQ, name, transform.apply(boundary - 1.0d));
+      case LT_EQ:
+        return predicate(Expression.Operation.LT_EQ, name, transform.apply(boundary));
+      case GT:
+        // adjust closed and then transform gtEq
+        // FIXME(joey): Boundaries are incorrect?
+        return predicate(Expression.Operation.GT_EQ, name, transform.apply(boundary + 1.0d));
       case GT_EQ:
         return predicate(Expression.Operation.GT_EQ, name, transform.apply(boundary));
       case EQ:

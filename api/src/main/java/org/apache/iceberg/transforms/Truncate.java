@@ -94,6 +94,7 @@ class Truncate<T> implements Transform<T, T>, Function<T, T> {
   public boolean canTransform(Type type) {
     switch (type.typeId()) {
       case INTEGER:
+      case DOUBLE:
       case LONG:
       case STRING:
       case BINARY:
@@ -222,7 +223,7 @@ class Truncate<T> implements Transform<T, T>, Function<T, T> {
     }
   }
 
-
+  // FIXME(joey): Document truncation approach.
   private static class TruncateDouble extends Truncate<Double>
       implements SerializableFunction<Double, Double> {
 
@@ -233,7 +234,9 @@ class Truncate<T> implements Transform<T, T>, Function<T, T> {
     @Override
     public SerializableFunction<Double, Double> bind(Type type) {
       Preconditions.checkArgument(
-          type.typeId() == Type.TypeID.LONG, "Cannot bind truncate to a different type: %s", type);
+          type.typeId() == Type.TypeID.DOUBLE,
+          "Cannot bind truncate to a different type: %s",
+          type);
       return this;
     }
 
