@@ -31,6 +31,7 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.catalyst.util.DateTimeUtils;
 import org.apache.spark.sql.types.CharType;
 import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.DoubleType;
 import org.apache.spark.sql.types.DecimalType;
 import org.apache.spark.sql.types.VarcharType;
 import org.assertj.core.api.Assertions;
@@ -235,6 +236,16 @@ public class TestIcebergSpark {
     Assert.assertEquals(
         Transforms.truncate(4).bind(Types.DecimalType.of(4, 2)).apply(new BigDecimal("11.11")),
         results.get(0).getDecimal(0));
+  }
+
+  @Test
+  public void testRegisterDecimalTruncateUDF() {
+    IcebergSpark.registerTruncateUDF(spark, "iceberg_truncate_double_4", DataTypes.DoubleType, 4);
+    List<Row> results = spark.sql("SELECT iceberg_truncate_double_4(11.11)").collectAsList();
+    Assert.assertEquals(1, results.size());
+    Assert.assertEquals(
+        Transforms.truncate(4).bind(Types.DoubleType.of(4, 2)).apply(new Double("11.11")),
+        results.get(0).getDouble(0));
   }
 
   @Test

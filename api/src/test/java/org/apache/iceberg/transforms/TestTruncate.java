@@ -75,6 +75,22 @@ public class TestTruncate {
   }
 
   @Test
+  public void testTruncateDouble() {
+    Function<Object, Object> trunc = Truncate.get(10).bind(Types.DoubleType.get());
+    assertThat((double) trunc.apply(0.0d)).isZero();
+    assertThat((double) trunc.apply(1.0d)).isZero();
+    assertThat((double) trunc.apply(5.0d)).isZero();
+    assertThat((double) trunc.apply(9.0d)).isZero();
+    assertThat((double) trunc.apply(9.99d)).isZero();
+    assertThat((double) trunc.apply(10.0d)).isEqualTo(10.0d);
+    assertThat((double) trunc.apply(11.0d)).isEqualTo(10.0d);
+    assertThat((double) trunc.apply(-1.0d)).isEqualTo(-10.0d);
+    assertThat((double) trunc.apply(-5.0d)).isEqualTo(-10.0d);
+    assertThat((double) trunc.apply(-10.0d)).isEqualTo(-10.0d);
+    assertThat((double) trunc.apply(-11.0d)).isEqualTo(-20.0d);
+  }
+
+  @Test
   public void testTruncateDecimal() {
     // decimal truncation works by applying the decimal scale to the width: 10 scale 2 = 0.10
     Function<Object, Object> trunc = Truncate.get(10).bind(Types.DecimalType.of(9, 2));

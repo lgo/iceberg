@@ -52,6 +52,8 @@ class Truncate<T> implements Transform<T, T>, Function<T, T> {
     switch (type.typeId()) {
       case INTEGER:
         return (R) new TruncateInteger(width);
+      case DOUBLE:
+        return (R) new TruncateDouble(width);
       case LONG:
         return (R) new TruncateLong(width);
       case DECIMAL:
@@ -213,6 +215,63 @@ class Truncate<T> implements Transform<T, T>, Function<T, T> {
         return Expressions.predicate(pred.op(), name);
       } else if (pred instanceof BoundLiteralPredicate) {
         return ProjectionUtil.truncateIntegerStrict(name, pred.asLiteralPredicate(), this);
+      } else if (pred.isSetPredicate() && pred.op() == Expression.Operation.NOT_IN) {
+        return ProjectionUtil.transformSet(name, pred.asSetPredicate(), this);
+      }
+      return null;
+    }
+  }
+
+
+  private static class TruncateDouble extends Truncate<Double>
+      implements SerializableFunction<Double, Double> {
+
+    private TruncateDouble(int width) {
+      super(width);
+    }
+
+    @Override
+    public SerializableFunction<Double, Double> bind(Type type) {
+      Preconditions.checkArgument(
+          type.typeId() == Type.TypeID.LONG, "Cannot bind truncate to a different type: %s", type);
+      return this;
+    }
+
+    @Override
+    public Double apply(Double value) {
+      if (value == null) {
+        return null;
+      }
+
+      return TruncateUtil.truncateDouble(width, value);
+    }
+
+    @Override
+    public UnboundPredicate<Double> project(String name, BoundPredicate<Double> pred) {
+      if (pred.term() instanceof BoundTransform) {
+        return ProjectionUtil.projectTransformPredicate(this, name, pred);
+      }
+
+      if (pred.isUnaryPredicate()) {
+        return Expressions.predicate(pred.op(), name);
+      } else if (pred.isLiteralPredicate()) {
+        return ProjectionUtil.truncateDouble(name, pred.asLiteralPredicate(), this);
+      } else if (pred.isSetPredicate() && pred.op() == Expression.Operation.IN) {
+        return ProjectionUtil.transformSet(name, pred.asSetPredicate(), this);
+      }
+      return null;
+    }
+
+    @Override
+    public UnboundPredicate<Double> projectStrict(String name, BoundPredicate<Double> pred) {
+      if (pred.term() instanceof BoundTransform) {
+        return ProjectionUtil.projectTransformPredicate(this, name, pred);
+      }
+
+      if (pred.isUnaryPredicate()) {
+        return Expressions.predicate(pred.op(), name);
+      } else if (pred.isLiteralPredicate()) {
+        return ProjectionUtil.truncateDoubleStrict(name, pred.asLiteralPredicate(), this);
       } else if (pred.isSetPredicate() && pred.op() == Expression.Operation.NOT_IN) {
         return ProjectionUtil.transformSet(name, pred.asSetPredicate(), this);
       }

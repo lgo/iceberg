@@ -45,6 +45,7 @@ from pyiceberg.transforms import (
     TruncateTransform,
 )
 from pyiceberg.types import (
+    DoubleType,
     DateType,
     LongType,
     NestedField,
@@ -60,6 +61,7 @@ def schema() -> Schema:
         NestedField(2, "data", StringType(), required=False),
         NestedField(3, "event_date", DateType(), required=False),
         NestedField(4, "event_ts", TimestampType(), required=False),
+        NestedField(5, "event_ts_double", DoubleType(), required=False),
     )
 
 
@@ -96,6 +98,11 @@ def truncate_str_spec() -> PartitionSpec:
 @pytest.fixture
 def truncate_int_spec() -> PartitionSpec:
     return PartitionSpec(PartitionField(1, 1000, TruncateTransform(10), "id_trunc"))
+
+
+@pytest.fixture
+def truncate_double_spec() -> PartitionSpec:
+    return PartitionSpec(PartitionField(5, 1000, TruncateTransform(10), "event_ts_double_trunc"))
 
 
 @pytest.fixture
@@ -327,6 +334,39 @@ def test_int_truncate_projection(schema: Schema, truncate_int_spec: PartitionSpe
         EqualTo("id_trunc", 10),
         AlwaysTrue(),
         EqualTo("id_trunc", 10),
+        AlwaysTrue(),
+    ]
+
+    project = inclusive_projection(schema, truncate_int_spec)
+    for index, predicate in enumerate(predicates):
+        expr = project(predicate)
+        assert expected[index] == expr, predicate
+
+
+def test_double_truncate_projection(schema: Schema, truncate_double_spec: PartitionSpec) -> None:
+    predicates = [
+        NotNull("event_ts_double"),
+        IsNull("event_ts_double"),
+        LessThan("event_ts_double", 10),
+        LessThanOrEqual("event_ts_double", 10),
+        GreaterThan("event_ts_double", 9),
+        GreaterThanOrEqual("event_ts_double", 10),
+        EqualTo("event_ts_double", 15),
+        NotEqualTo("event_ts_double", 15),
+        In("event_ts_double", {15, 16}),
+        NotIn("event_ts_double", {15, 16}),
+    ]
+
+    expected = [
+        NotNull("event_ts_double_trunc"),
+        IsNull("event_ts_double_trunc"),
+        LessThanOrEqual("event_ts_double_trunc", 0),
+        LessThanOrEqual("event_ts_double_trunc", 10),
+        GreaterThanOrEqual("event_ts_double_trunc", 10),
+        GreaterThanOrEqual("event_ts_double_trunc", 10),
+        EqualTo("event_ts_double_trunc", 10),
+        AlwaysTrue(),
+        EqualTo("event_ts_double_trunc", 10),
         AlwaysTrue(),
     ]
 
