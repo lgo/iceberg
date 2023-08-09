@@ -239,7 +239,7 @@ public class TestIcebergSpark {
   }
 
   @Test
-  public void testRegisterDecimalTruncateUDF() {
+  public void testRegisterDoubleTruncateUDF() {
     IcebergSpark.registerTruncateUDF(spark, "iceberg_truncate_double_4", DataTypes.DoubleType, 4);
     List<Row> results = spark.sql("SELECT iceberg_truncate_double_4(11.11)").collectAsList();
     Assert.assertEquals(1, results.size());
