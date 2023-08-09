@@ -207,6 +207,37 @@ public class TruncateFunction implements UnboundFunction {
     }
   }
 
+  public static class TruncateDouble extends TruncateBase<Double> {
+    // magic method used in codegen
+    public static double invoke(int width, double value) {
+      return TruncateUtil.truncateDouble(width, value);
+    }
+
+    @Override
+    public DataType[] inputTypes() {
+      return new DataType[] {DataTypes.DoubleType, DataTypes.DoubleType};
+    }
+
+    @Override
+    public DataType resultType() {
+      return DataTypes.DoubleType;
+    }
+
+    @Override
+    public String canonicalName() {
+      return "iceberg.truncate(double)";
+    }
+
+    @Override
+    public Double produceResult(InternalRow input) {
+      if (input.isNullAt(WIDTH_ORDINAL) || input.isNullAt(VALUE_ORDINAL)) {
+        return null;
+      } else {
+        return invoke(input.getInt(WIDTH_ORDINAL), input.getDouble(VALUE_ORDINAL));
+      }
+    }
+  }
+
   public static class TruncateBigInt extends TruncateBase<Long> {
     // magic function for usage with codegen
     public static long invoke(int width, long value) {
