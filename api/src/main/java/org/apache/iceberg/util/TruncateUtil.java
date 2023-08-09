@@ -62,7 +62,7 @@ public class TruncateUtil {
 
   public static double truncateDouble(int width, double value) {
     return truncateDecimal(BigInteger.valueOf(width), BigDecimal.valueOf(value)).doubleValue();
-    // FIXME(joey): Test thi.
+    // FIXME(joey): Test this.
     //
     // FIXME(joey): Document the behaviour approach.
     // int intValue = Math.floor(value);
