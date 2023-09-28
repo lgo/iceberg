@@ -102,7 +102,7 @@ public class HiveClientPool extends ClientPoolImpl<IMetaStoreClient, TException>
         || (e != null
             && e instanceof MetaException
             && e.getMessage()
-                .contains("Got exception: org.apache.thrift.transport.TTransportException"));
+                .contains(String.format("Got exception: %s", TTransportException.class.getCanonicalName())));
   }
 
   @Override
